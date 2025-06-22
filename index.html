@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>국세징수법 퀴즈 대작전! 🕵️‍♀️</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+    <style>
+        /* Inter font setting */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Apply background and text color for the entire body using Tailwind's dark: prefix */
+            /* Default light mode colors */
+            @apply bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Add smooth transition effect */
+        }
+        /* Scrollbar design (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+            @apply dark:bg-gray-700; /* Dark mode scrollbar track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            @apply dark:bg-gray-500; /* Dark mode scrollbar thumb */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+            @apply dark:bg-gray-400; /* Dark mode scrollbar thumb hover */
+        }
+
+        /* --- Dark Mode Specific Overrides (Stronger Application for text visibility) --- */
+        /* Ensure body background changes directly when html has 'dark' class and text becomes very light */
+        html.dark body {
+            background-color: #111827 !important; /* Tailwind's gray-900 equivalent */
+            color: #f9fafb !important; /* Tailwind's gray-100 equivalent - general text color */
+        }
+        /* Ensure quiz-container background changes directly and its child texts are bright */
+        html.dark #quiz-container {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent */
+        }
+
+        /* Force specific text elements to be white in dark mode */
+        html.dark #start-screen h1,
+        html.dark #start-screen p,
+        html.dark #quiz-header #question-count,
+        html.dark #quiz-header #timer-display,
+        html.dark #question-text,
+        html.dark #feedback-text,
+        html.dark #explanation-text,
+        html.dark #end-quiz-screen h2,
+        html.dark #incorrect-count-display {
+            color: #f9fafb !important; /* Tailwind's gray-100 - very light almost white */
+        }
+
+        /* MODIFIED: Ensure feedback-explanation-area background changes in dark mode */
+        html.dark #feedback-explanation-area {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent for the explanation box */
+            border-color: #4b5563 !important; /* Dark mode border color */
+        }
+
+
+        /* Choices text color in dark mode - APPLY !IMPORTANT HERE more directly */
+        html.dark #question-choices-area > div {
+            color: #f9fafb !important; /* Ensures choice text is white in dark mode */
+            background-color: #374151 !important; /* Tailwind gray-700 equivalent */
+            border-color: #4b5563 !important; /* Tailwind gray-600 equivalent */
+        }
+
+        /* Override specific class text colors for dark mode */
+        .text-gray-700 { /* For start screen P tags, question count, timer, incorrect count */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-gray-800 { /* For H1, H2, Question text */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-blue-600 { /* For scores etc. */
+             @apply dark:text-blue-400 !important; /* Keep blue for scores but make it dark-mode friendly */
+        }
+
+        /* Specific dark mode styles for choice buttons */
+        #question-choices-area > div.hover\:bg-blue-50:hover {
+            @apply dark:hover:bg-blue-900 dark:hover:bg-opacity-20;
+        }
+
+        /* MODIFIED: Changed selected choice background and added distinct blue border for dark mode */
+        #question-choices-area > div.bg-blue-200 { /* selected choice in light mode */
+            /* Existing light mode styles */
+        }
+        html.dark #question-choices-area > div.bg-blue-200 { /* selected choice in dark mode */
+            background-color: #2a3547 !important; /* Slightly lighter than gray-800, darker than gray-700 for distinct selection */
+            border-color: #60a5fa !important; /* Tailwind blue-400 for a clear blue border */
+            border-width: 2px !important; /* Make border more visible */
+            /* Removed ring as border is now used for highlight */
+        }
+
+        #question-choices-area > div.bg-green-100 { /* correct answer feedback */
+            @apply dark:bg-green-700 dark:border-green-400;
+        }
+        #question-choices-area > div.bg-green-200 { /* selected correct answer */
+            @apply dark:bg-green-600 dark:border-green-300;
+        }
+        #question-choices-area > div.bg-red-200 { /* selected incorrect answer */
+            @apply dark:bg-red-600 dark:border-red-300;
+        }
+
+        /* --- Dark Mode for Message Box --- */
+        html.dark #message-box > div { /* Inner div of the message box */
+            background-color: #1f2937 !important; /* Darker background */
+            color: #f9fafb !important; /* Light text for consistency */
+        }
+
+        html.dark #message-text { /* Text inside the message box */
+            color: #f9fafb !important; /* Ensure message text is light */
+        }
+
+        /* Message box button for dark mode (using existing gradient, but ensuring text is visible) */
+        html.dark #message-ok-btn {
+            color: #ffffff !important; /* Explicitly ensure white text on button */
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl transition-colors duration-300 relative">
+        <!-- Settings Controls (Top Right) -->
+        <div id="settings-controls" class="absolute top-4 right-4 flex space-x-2">
+            <!-- Dark Mode Toggle -->
+            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out hover:scale-110">
+                <!-- Sun icon (default: shown in light mode) -->
+                <svg id="sun-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1m-16 0H3m15.325-7.325l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l.707-.707M6.343 6.343l-.707-.707"></path>
+                </svg>
+                <!-- Moon icon (hidden by default, shown in dark mode) -->
+                <svg id="moon-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+            <!-- Sound Toggle -->
+            <button id="sound-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out transform hover:scale-110">
+                <!-- Speaker icon (default: shown when sound is on) -->
+                <svg id="speaker-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9l1.414-1.414M7.05 18.95a5 5 0 010-7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <!-- Mute icon (hidden by default, shown when sound is off) -->
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Start screen -->
+        <div id="start-screen" class="text-center p-6 space-y-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">국세징수법 퀴즈 대작전! 🕵️‍♀️</h1>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">몇 문제 풀어볼까? 숫자 버튼을 눌러줘! 👇</p>
+            <div class="space-y-4">
+                <!-- Start 10 questions button with pastel gradient -->
+                <button id="start-10-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    10문제 도전! 🚀
+                </button>
+                <!-- Start 20 questions button with pastel gradient -->
+                <button id="start-20-btn" class="w-full bg-gradient-to-r from-green-200 to-green-400 hover:from-green-300 hover:to-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    20문제 용감하게! 🌟
+                </button>
+                <!-- Start 40 questions button with pastel gradient -->
+                <button id="start-40-btn" class="w-full bg-gradient-to-r from-purple-200 to-purple-400 hover:from-purple-300 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    40문제 척척박사! 🌈
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz screen -->
+        <div id="quiz-screen" class="hidden w-full">
+            <!-- Quiz header: Question number, score, and Timer -->
+            <div id="quiz-header" class="flex justify-between items-center w-full mb-6">
+                <p id="question-count" class="text-lg font-semibold text-gray-700 dark:text-gray-300">문제 0 / 0</p>
+                <p id="timer-display" class="text-lg font-semibold text-gray-700 dark:text-gray-300">00:00</p>
+                <p id="score-display" class="text-lg font-semibold text-blue-600 dark:text-blue-400">별 점수: 0 ✨</p>
+            </div>
+
+            <!-- Question text -->
+            <p id="question-text" class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6"></p>
+
+            <!-- Choices area -->
+            <div id="question-choices-area" class="w-full space-y-4 mb-6">
+                <!-- Choices will be dynamically inserted here -->
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            </div>
+
+            <!-- Feedback and explanation area -->
+            <div id="feedback-explanation-area" class="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+                <p id="feedback-text" class="font-semibold mb-2"></p>
+                <p id="explanation-text" class="text-gray-700 dark:text-gray-300 text-sm"></p>
+            </div>
+
+            <!-- Quiz control buttons -->
+            <div id="quiz-controls" class="w-full flex justify-between mt-6">
+                <!-- Check Answer / Next Question button with pastel gradient -->
+                <button id="check-next-btn" class="bg-gradient-to-r from-indigo-200 to-indigo-400 hover:from-indigo-300 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    다음 문제로 Go! 👉
+                </button>
+                <!-- End Early button with pastel gradient -->
+                <button id="end-early-btn" class="bg-gradient-to-r from-red-200 to-red-400 hover:from-red-300 hover:to-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    퀴즈 이제 그만! 멈춰! ✋
+                </button>
+            </div>
+        </div>
+
+        <!-- End quiz screen -->
+        <div id="end-quiz-screen" class="text-center p-6 space-y-4 hidden w-full">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">퀴즈 끝! 정말 멋진 도전이었어! ✨</h2>
+            <p id="final-score" class="text-2xl text-blue-600 dark:text-blue-400 font-bold mb-6">최종 점수: 0점</p>
+            <div id="end-quiz-buttons-area" class="space-y-4">
+                <!-- Restart Full Quiz button with pastel gradient -->
+                <button id="restart-full-quiz-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음부터 다시! 🐥
+                </button>
+                <!-- Review Incorrect button with pastel gradient -->
+                <button id="review-incorrect-btn" class="w-full bg-gradient-to-r from-yellow-200 to-yellow-400 hover:from-yellow-300 hover:to-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    틀린 문제 복습! 🧠
+                </button>
+                <!-- Go To Home button with pastel gradient -->
+                <button id="go-to-home-btn" class="w-full bg-gradient-to-r from-gray-200 to-gray-400 hover:from-gray-300 hover:to-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음 화면으로! 🏠
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom message box -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl text-center w-80">
+            <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100"></p>
+            <button id="message-ok-btn" class="bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-2 px-4 rounded-lg">좋아! 😊</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================ Cache DOM elements ============================
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endQuizScreen = document.getElementById('end-quiz-screen');
+
+        const start10Button = document.getElementById('start-10-btn');
+        const start20Button = document.getElementById('start-20-btn');
+        const start40Button = document.getElementById('start-40-btn');
+
+        const quizHeader = document.getElementById('quiz-header');
+        const questionCount = document.getElementById('question-count');
+        const timerDisplay = document.getElementById('timer-display'); // Added timer display element
+        const scoreDisplay = document.getElementById('score-display');
+        const questionText = document.getElementById('question-text');
+        const questionChoicesArea = document.getElementById('question-choices-area');
+        const feedbackExplanationArea = document.getElementById('feedback-explanation-area');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanationText = document.getElementById('explanation-text');
+        const quizControls = document.getElementById('quiz-controls');
+        const checkNextButton = document.getElementById('check-next-btn');
+        const endEarlyButton = document.getElementById('end-early-btn');
+
+        const finalScoreDisplay = document.getElementById('final-score');
+        const endQuizButtonsArea = document.getElementById('end-quiz-buttons-area'); // Added
+        const restartFullQuizButton = document.getElementById('restart-full-quiz-btn');
+        const reviewIncorrectButton = document.getElementById('review-incorrect-btn');
+        const goToHomeButton = document.getElementById('go-to-home-btn');
+
+        const settingsControls = document.getElementById('settings-controls'); // Settings button container
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+        const soundToggle = document.getElementById('sound-toggle');
+        const speakerIcon = document.getElementById('speaker-icon');
+        const muteIcon = document.getElementById('mute-icon');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkButton = document.getElementById('message-ok-btn');
+
+        // ============================ Global variables and quiz data ============================
+        let allQuizData = []; // Array to store all quiz data
+        let currentQuizData = []; // Array of questions for the current quiz session
+        let incorrectQuestions = []; // Array to store incorrect questions
+        let currentQuestionIndex = 0;
+        let score = 0; // Raw score (number of correct answers)
+        let selectedChoice = null; // Changed to store 'O' or 'X'
+        let isAnswerChecked = false; // Flag for answer check status
+        let quizTotalQuestions = 0; // Total number of questions for the current quiz session (set at start)
+        let isSoundEnabled = true; // Sound active status
+        let timer = 0; // Timer in seconds
+        let timerIntervalId = null; // ID to clear the interval
+
+        // Tone.js PolySynth (synthesizer that can play multiple notes simultaneously)
+        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+        // ============================ Custom message box functions ============================
+        /**
+         * Function to display a message to the user (replaces alert)
+         * @param {string} message - Text message to display
+         */
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Hide message box and remove event listener when 'OK' button is clicked
+            messageOkButton.addEventListener('click', hideMessage, { once: true });
+        }
+
+        /**
+         * Function to hide the message box
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // ============================ Sound effect functions ============================
+        /**
+         * Checks Tone.start() and Tone.Destination.mute status before playing sound
+         * @returns {Promise<void>}
+         */
+        async function ensureAudioContextAndSound() {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            // Set Tone.Destination.mute based on isSoundEnabled status
+            Tone.Destination.mute = !isSoundEnabled;
+        }
+
+        /**
+         * Sound played when the answer is correct
+         */
+        async function playCorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C5", "8n"); // Play C5 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when the answer is incorrect
+         */
+        async function playIncorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C3", "8n"); // Play C3 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when quiz starts or restarts (uses chord)
+         */
+        async function playStartSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); // Short ascending chord (C Major)
+            }
+        }
+
+        /**
+         * Sound played when quiz ends (uses chord)
+         */
+        async function playEndSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["A3", "C4", "E4"], "4n"); // Short, low descending sound (A Minor)
+            }
+        }
+
+        /**
+         * Sound played on general button click or choice selection
+         */
+        async function playButtonClickSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("G4", "32n"); // Very short click sound
+            }
+        }
+
+        // ============================ Embed quiz data ============================
+        const nationalTaxCollectionQuizData = [
+            {
+                question: "국세징수법은 국세의 징수에 관하여 국세기본법에 특별한 규정이 있는 경우에도 국세기본법에 우선하여 적용된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법은 국세의 징수에 관하여 국세기본법의 특별한 규정으로, 국세기본법에 우선하여 적용됩니다."
+            },
+            {
+                question: "국세징수법에서 '납세자'란 납세의무자(연대납세의무자, 납세자에 갈음하여 납부할 의무가 생긴 제2차 납세의무자 및 보증인을 포함한다)와 징수의무자를 말한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제2조 제3호에 명시된 납세자의 정의입니다."
+            },
+            {
+                question: "세무공무원은 납세자가 국세를 납부기한까지 납부하지 아니한 경우 징수할 금액이 50만원 이상이면 납부고지일부터 30일 이내에 독촉장을 발부하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제15조(독촉)에 따르면 납부기한까지 국세를 완납하지 아니한 경우 납부고지일부터 20일 이내에 독촉장을 발부해야 합니다. 50만원 이상이라는 금액 조건은 없습니다."
+            },
+            {
+                question: "독촉장을 발부하는 경우 납부기한은 독촉장 발부일부터 10일 이내로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제15조(독촉) 제2항에 명시된 독촉장의 납부기한입니다."
+            },
+            {
+                question: "세무서장은 납세자가 국세를 납부기한까지 완납하지 아니한 경우에는 납부기한이 지난 후 60일 이내에 압류하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제24조(압류의 요건) 제1항에 따르면 납부기한까지 완납하지 아니한 경우 징수할 금액이 1천만원 이상이면 납부기한이 지난 후 60일 이내에 압류해야 합니다. 금액 요건이 1천만원 이상입니다."
+            },
+            {
+                question: "체납액이 1천만원 미만인 경우에는 즉시 압류를 할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "즉시 압류는 체납액의 많고 적음에 관계없이 법정 요건을 충족하면 가능합니다. 예를 들어 납세자가 도피할 우려가 있는 경우 등입니다."
+            },
+            {
+                question: "체납처분은 체납액 징수에 필요한 경우에 한하여 할 수 있으며, 체납자의 재산 전부를 압류하여서는 아니 된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제26조(압류의 한계)에 따라 압류는 체납액을 징수하는 데 필요한 범위에서 해야 하며, 체납자의 재산 전부를 압류해서는 안 됩니다."
+            },
+            {
+                question: "압류조서를 작성하는 경우 참여할 사람이나 증인이 없으면 그 사실을 압류조서에 적고 세무공무원 2명 이상이 서명하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제30조(압류조서의 작성) 제3항에 명시된 사항입니다."
+            },
+            {
+                question: "압류할 재산의 소유권이 타인에게 이전된 경우에는 압류를 해제하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "압류는 압류 당시의 소유자를 기준으로 하며, 압류 이후 소유권이 이전되더라도 압류의 효력은 계속 유지됩니다. 다만, 제3자가 정당한 소유자임을 입증하면 해제될 수 있습니다."
+            },
+            {
+                question: "채권의 압류는 압류조서의 송달에 의하여 효력이 발생한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제41조(채권의 압류) 제2항에 따라 채권의 압류는 채무자 및 제3채무자에게 압류조서를 송달함으로써 효력이 발생합니다."
+            },
+            {
+                question: "유체동산의 압류는 채무자에게 압류조서를 교부한 때에 효력이 발생한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제31조(유체동산 압류의 효력 발생시기)에 따라 압류조서 교부 시 효력이 발생합니다."
+            },
+            {
+                question: "압류를 하려면 미리 체납자에게 통지하여야 한다. 다만, 압류의 목적을 달성할 수 없다고 인정할 때에는 그러하지 아니하다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제27조(압류의 통지) 제1항에 명시된 원칙과 예외 사항입니다."
+            },
+            {
+                question: "압류는 체납자가 점유하고 있는 재산에 한하여 할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법은 체납자의 소유에 속하는 재산이라면 체납자가 점유하고 있지 않더라도 압류할 수 있습니다. (예: 제3자가 점유하는 체납자 소유의 재산)"
+            },
+            {
+                question: "채무자의 재산이 국세징수법 또는 다른 법률에 따라 압류가 금지된 재산에 해당하더라도 체납액이 1억원 이상인 경우에는 압류할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "압류 금지 재산은 체납액 규모와 관계없이 압류할 수 없습니다. 이는 체납자의 최소한의 생활을 보장하기 위함입니다."
+            },
+            {
+                question: "법정대리인이 없는 미성년자의 재산에 대한 체납처분은 그 재산의 관리인에게 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제5조(국세징수절차의 특례)에 따라 법정대리인 또는 재산관리인에게 할 수 있습니다."
+            },
+            {
+                question: "사망한 자의 재산에 대한 체납처분은 상속인에게 할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제10조(상속으로 인한 납세의무의 승계) 및 관련 조항에 따라 상속인에게 체납처분을 할 수 있습니다."
+            },
+            {
+                question: "압류한 재산이 제3자의 소유임을 주장하는 자는 그 재산이 자기 소유임을 증명하여 압류 해제를 청구할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제55조(제3자의 소유권 주장)에 따라 제3자 이의의 절차를 통해 압류 해제를 청구할 수 있습니다."
+            },
+            {
+                question: "압류한 재산의 공매는 그 재산을 압류한 세무서장이 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제61조(공매의 주체)에 따라 압류재산의 공매는 원칙적으로 압류한 세무서장이 담당합니다."
+            },
+            {
+                question: "공매의 통지는 압류재산을 공매할 뜻과 그 사유를 명시하여 등기우편으로 발송하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제62조(공매의 통지) 제2항에 명시된 공매통지 방법입니다."
+            },
+            {
+                question: "공매의 방법은 제한경쟁입찰 또는 수의계약으로 할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제64조(공매의 방법)에 따르면 공매는 원칙적으로 경쟁입찰로 하지만, 특정한 경우에는 제한경쟁입찰이나 수의계약으로도 할 수 있습니다."
+            },
+            {
+                question: "공매가격의 결정은 감정평가법인등에 의뢰하여 산정된 감정평가액을 기준으로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제65조(공매가격의 결정)에 명시된 공매가격 결정 기준입니다."
+            },
+            {
+                question: "공매재산의 감정평가 수수료는 공매대금에서 우선적으로 충당할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제80조(공매대금의 배분)에 따라 공매비용은 공매대금에서 최우선적으로 충당됩니다."
+            },
+            {
+                question: "공매의 공고는 일간신문에 게재하거나 세무서 게시판에 게시하는 방법으로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제63조(공매의 공고)에 명시된 공매 공고 방법입니다."
+            },
+            {
+                question: "공매에 참가하려는 자는 입찰보증금을 납부하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제67조(입찰보증금)에 따라 입찰보증금 납부 의무가 있습니다."
+            },
+            {
+                question: "입찰보증금은 입찰가격의 100분의 10 이상으로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제67조(입찰보증금) 제2항에 명시된 입찰보증금 비율입니다."
+            },
+            {
+                question: "공매가 유찰된 경우에는 최저입찰가격을 낮추어 다시 공매할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제70조(재공매) 제2항에 따라 유찰 시 최저입찰가격을 낮추어 재공매할 수 있습니다."
+            },
+            {
+                question: "공매계약은 매수인이 매수대금을 완납한 때에 체결된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제71조(매수대금의 납부와 소유권 취득)에 따라 매수인이 매수대금을 완납한 때에 공매계약의 효력이 발생하고 소유권을 취득합니다."
+            },
+            {
+                question: "공매대금은 매수인이 납부기한까지 납부하지 아니하면 매매계약은 해제된 것으로 본다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제71조(매수대금의 납부와 소유권 취득) 제3항에 따라 매수인이 납부기한까지 매수대금을 납부하지 않으면 계약은 해제된 것으로 봅니다."
+            },
+            {
+                question: "공매대금을 완납한 매수인은 별도의 등기 없이도 해당 재산의 소유권을 취득한다. (O/X)",
+                answer: "X",
+                explanation: "부동산의 경우 공매대금을 완납하더라도 등기를 해야 소유권을 취득합니다. 등기는 소유권 변동의 요건입니다."
+            },
+            {
+                question: "공매에 의하여 재산을 취득한 자는 그 취득한 재산에 대하여 담보권, 전세권 등 기존의 부담이 소멸하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "공매를 통해 재산을 취득하는 경우 원칙적으로 해당 재산에 설정된 담보권 등은 소멸합니다. 다만, 압류에 우선하는 법정기일이 빠른 채권 등은 인수될 수 있습니다."
+            },
+            {
+                question: "체납처분은 재산의 압류, 공매 및 청산으로 이루어진다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법에 따른 체납처분의 3단계 주요 절차입니다."
+            },
+            {
+                question: "압류할 재산이 현저히 부족하여 체납액을 징수할 가망이 없는 경우에는 압류하지 아니할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제51조(체납처분의 중지) 제1항 제1호에 따라 압류할 재산이 없는 등 일정한 경우에는 체납처분을 중지할 수 있습니다."
+            },
+            {
+                question: "국세징수법상 제2차 납세의무는 보충적 납세의무이므로, 주된 납세의무자의 재산에 대해 체납처분을 하여도 징수할 수 없을 때에 비로소 발생한다. (O/X)",
+                answer: "O",
+                explanation: "제2차 납세의무는 주된 납세의무자의 재산으로 부족할 경우에 보충적으로 발생하는 의무입니다."
+            },
+            {
+                question: "과점주주의 제2차 납세의무는 법인의 재산으로 법인의 국세 등을 징수하여도 부족한 경우에 한정하여 적용된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제9조(법인 해산 등의 경우의 제2차 납세의무)에 따라 법인의 재산으로 부족할 경우에 적용됩니다."
+            },
+            {
+                question: "사업 양수인의 제2차 납세의무는 양수한 재산가액을 한도로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제7조(사업 양수인의 제2차 납세의무)에 명시된 한도액입니다."
+            },
+            {
+                question: "사업 양수인의 제2차 납세의무는 양도일 현재의 체납액에 한하여 적용된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제7조(사업 양수인의 제2차 납세의무) 제1항에 명시된 적용 시점입니다."
+            },
+            {
+                question: "납세자가 국세를 체납한 경우 납세자의 배우자는 항상 제2차 납세의무를 진다. (O/X)",
+                answer: "X",
+                explanation: "배우자는 특별한 경우(예: 상속 등)를 제외하고는 일반적으로 제2차 납세의무를 지지 않습니다."
+            },
+            {
+                question: "납세자가 사망한 경우 그 상속인은 피상속인의 국세체납액에 대하여 상속받은 재산가액을 한도로 제2차 납세의무를 진다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제10조(상속으로 인한 납세의무의 승계)에 따라 상속받은 재산의 한도 내에서 승계합니다."
+            },
+            {
+                question: "합병으로 소멸한 법인의 국세체납액에 대하여는 존속법인이나 신설법인이 제2차 납세의무를 진다. (O/X)",
+                answer: "X",
+                explanation: "존속법인이나 신설법인이 승계납세의무를 지는 것이지, 제2차 납세의무는 아닙니다. 제2차 납세의무는 보충적 성격입니다."
+            },
+            {
+                question: "국세징수법상 담보의 종류에는 금전, 국채, 지방채, 유가증권 등이 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제4장(납세담보) 제18조에 명시된 담보의 종류입니다."
+            },
+            {
+                question: "납세담보는 금전 또는 세무서장이 인정하는 유가증권으로만 제공할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "금전 외에도 국채, 지방채, 세무서장이 확실하다고 인정하는 유가증권, 납세보증보험증권, 은행 등 금융기관의 납세보증서 또는 납세보증금, 토지, 건물, 공장재단, 광업재단, 선박, 항공기, 건설기계, 자동차, 입목 등 다양한 종류의 담보가 가능합니다."
+            },
+            {
+                question: "납세담보는 담보 제공자의 주소지를 관할하는 세무서장에게 제출하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "납세담보는 해당 국세의 납세지를 관할하는 세무서장에게 제출하는 것이 일반적입니다."
+            },
+            {
+                question: "담보권자가 담보권을 실행하는 경우 해당 국세에 대한 담보권 실행 절차는 국세징수법에 따른다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제22조(납세담보의 처분)에 따라 담보를 제공받은 세무서장이 담보를 처분할 수 있습니다."
+            },
+            {
+                question: "납세담보를 제공한 국세는 납부기한이 지난 경우에도 독촉 없이 즉시 강제징수할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "독촉 등 정상적인 절차를 거치는 것이 원칙입니다. 다만, 담보권 실행을 통해 즉시 징수할 수 있는 경우도 있습니다."
+            },
+            {
+                question: "체납된 국세의 납부를 위하여 다른 법률에 따라 제공된 담보도 국세징수법상 납세담보로 본다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법상 납세담보는 국세징수법에 따라 제공된 담보를 의미합니다. 다른 법률에 따른 담보는 별개입니다."
+            },
+            {
+                question: "국세체납액을 징수하기 위한 재산 압류는 체납자의 다른 채권자의 채권에 우선한다. (O/X)",
+                answer: "X",
+                explanation: "국세의 우선권은 법정기일을 기준으로 판단합니다. 다른 채권자의 채권 중 법정기일이 국세보다 빠른 경우에는 우선하지 못할 수 있습니다."
+            },
+            {
+                question: "국세는 다른 공과금보다 항상 우선하여 징수한다. (O/X)",
+                answer: "X",
+                explanation: "일반적으로 국세는 다른 공과금보다 우선하지만, 예외적인 경우(예: 강제집행 비용, 피담보채권의 법정기일 등)에는 우선하지 못할 수도 있습니다."
+            },
+            {
+                question: "체납된 국세의 납부를 독촉하는 경우 가산금은 독촉장에 기재하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제21조(가산금) 및 동법 시행령에 따라 독촉장 발부 시 가산금을 함께 고지합니다."
+            },
+            {
+                question: "납세의무자가 독촉기간 이내에 국세를 납부하지 아니한 경우 징수하는 가산금은 체납된 국세의 100분의 3에 상당하는 금액이다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제21조(가산금) 제1항에 명시된 가산금의 비율입니다."
+            },
+            {
+                question: "중가산금은 독촉기간이 경과한 날부터 매 1개월이 지날 때마다 체납된 국세의 1만분의 75에 상당하는 금액을 가산한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제21조(가산금) 제2항에 명시된 중가산금의 비율입니다. 이는 1개월당 0.75%를 의미합니다."
+            },
+            {
+                question: "중가산금은 체납된 국세가 150만원 미만인 경우에는 징수하지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "중가산금은 체납된 국세가 1백만원 이상인 경우에만 적용됩니다. (국세징수법 제21조 제2항 단서)"
+            },
+            {
+                question: "중가산금은 60개월을 초과하여 징수할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제21조(가산금) 제3항에 명시된 중가산금의 상한 기간입니다."
+            },
+            {
+                question: "체납처분은 압류할 재산이 없는 경우에도 할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "체납처분은 재산을 압류하여 징수하는 절차이므로 압류할 재산이 없으면 체납처분을 할 수 없습니다. 이 경우 결손처분 등의 절차를 고려할 수 있습니다."
+            },
+            {
+                question: "압류할 재산이 국외에 있는 경우에도 국내에 그 재산을 관리하는 대리인이 있다면 압류할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 국세징수법상 압류는 국내 재산에 한하여 가능하며, 국외 재산에 대한 강제집행은 국제법적 절차에 따릅니다."
+            },
+            {
+                question: "압류할 재산이 수인이 공유하는 경우에는 공유자 전원에 대하여 압류통지를 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제28조(공유재산의 압류)에 따라 공유자 전원에게 통지해야 합니다."
+            },
+            {
+                question: "압류할 재산이 보세구역에 있는 경우에는 관세청장의 승인을 얻어 압류하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제34조(보세구역 안에 있는 물건의 압류)에 따라 관세청장의 승인을 받아야 합니다."
+            },
+            {
+                question: "국세징수법상 체납처분 유예는 체납액의 징수를 유예하는 것을 말한다. (O/X)",
+                answer: "O",
+                explanation: "체납처분 유예는 체납액에 대한 강제징수 절차의 집행을 일시적으로 미루는 것입니다."
+            },
+            {
+                question: "체납처분 유예는 납세자가 담보를 제공하는 경우에 한하여 허용된다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제85조의4(체납처분 유예)에 따르면 담보 제공 외에도 체납액의 징수를 유예함으로써 사업을 정상적으로 운영할 수 있는 경우 등 일정한 요건을 충족하면 담보 없이도 유예할 수 있습니다."
+            },
+            {
+                question: "체납처분 유예기간은 2년을 초과할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 시행령 제88조의3(체납처분 유예의 기간)에 따라 체납처분 유예기간은 1년의 범위에서 정하며, 2회에 한하여 1년씩 연장할 수 있습니다. 따라서 최장 3년까지 가능합니다."
+            },
+            {
+                question: "체납처분 유예기간 중에는 체납처분을 할 수 없으며, 유예기간이 종료되면 체납처분을 재개한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제85조의4(체납처분 유예) 제2항에 따라 유예기간 중에는 체납처분을 할 수 없으며, 유예기간 종료 후에는 재개됩니다."
+            },
+            {
+                question: "납세담보를 제공하고 체납처분 유예를 받은 경우 유예기간 중에는 가산금을 징수하지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "유예기간 중에도 가산금은 계속 부과됩니다. 다만, 연체 가산금은 유예기간 동안 적용이 배제될 수 있습니다."
+            },
+            {
+                question: "체납처분 유예를 받은 납세자가 체납액을 납부하지 아니하면 유예를 취소하고 즉시 강제징수할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제85조의4(체납처분 유예) 제4항에 따라 체납처분 유예 조건 위반 시 취소하고 강제징수할 수 있습니다."
+            },
+            {
+                question: "국세징수법상 결손처분은 체납된 국세의 채무를 소멸시키는 행위이다. (O/X)",
+                answer: "X",
+                explanation: "결손처분은 징수권 행사의 일시적 정지를 의미하며, 채무 자체를 소멸시키는 것은 아닙니다. 나중에 납세자의 재산이 발견되면 다시 징수할 수 있습니다."
+            },
+            {
+                question: "결손처분은 체납자의 재산이 없거나 체납처분을 하여도 징수할 가망이 없다고 인정될 때 할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제86조(결손처분) 제1항에 명시된 결손처분 사유입니다."
+            },
+            {
+                question: "결손처분을 받은 경우에도 그 후 재산이 발견되면 즉시 압류할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제86조(결손처분) 제2항에 따라 재산 발견 시 결손처분을 취소하고 다시 징수할 수 있습니다."
+            },
+            {
+                question: "결손처분을 할 때에는 체납자에게 통지하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제86조(결손처분) 제3항에 따라 체납자에게 결손처분 사실을 통지해야 합니다."
+            },
+            {
+                question: "결손처분은 5년 이상 체납된 국세에 한하여 할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "결손처분은 체납 기간이 아니라 재산 유무 및 징수 가능성 등을 기준으로 판단합니다."
+            },
+            {
+                question: "결손처분된 국세는 징수권이 소멸된다. (O/X)",
+                answer: "X",
+                explanation: "결손처분은 징수권의 행사를 정지하는 것이며, 징수권 자체가 소멸하는 것은 아닙니다. 징수권 소멸은 소멸시효 완성에 의합니다."
+            },
+            {
+                question: "압류할 수 없는 재산에는 압류 당시 체납자와 그 동거가족의 생활에 필요한 의류, 침구 등이 포함된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제31조(압류 금지 재산)에 명시된 압류 금지 물품입니다. 이는 민법의 강제집행법상 압류 금지 재산과 유사합니다."
+            },
+            {
+                question: "압류할 수 없는 재산에는 급료, 연금 등 채무자의 수입 중 일정 부분이 포함된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제42조(급여채권 등의 압류 금지)에 따라 급료, 연금 등의 일정 금액은 압류가 금지됩니다."
+            },
+            {
+                question: "압류할 수 없는 재산은 법원의 결정에 의해서만 압류금지를 해제할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "압류 금지 재산은 법률에 의해 규정되며, 원칙적으로 압류할 수 없습니다. 법원의 결정으로 해제되는 것이 아닙니다."
+            },
+            {
+                question: "압류된 재산이 공매가 부적당하다고 인정되는 경우에는 사적으로 매각할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제76조(수의계약에 의한 매각)에 따라 공매가 부적당하거나 공매에 붙여도 매수자가 없는 경우 등에는 수의계약으로 매각할 수 있습니다."
+            },
+            {
+                question: "공매에 있어 매수인이 매수대금을 납부하지 아니하면 세무서장은 매수보증금을 몰수할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제71조(매수대금의 납부와 소유권 취득) 제3항에 따라 매수인이 매수대금을 납부하지 않으면 입찰보증금은 국고에 귀속됩니다."
+            },
+            {
+                question: "압류해제는 압류의 효력을 소멸시키는 행위이다. (O/X)",
+                answer: "O",
+                explanation: "압류해제는 압류로 인한 제한적 효력을 소멸시키는 행정처분입니다."
+            },
+            {
+                question: "압류해제는 체납액을 완납한 경우에만 할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제53조(압류 해제)에 따르면 체납액의 완납 외에도 압류에 필요한 재산이 부족하게 된 경우, 압류 금지 재산에 해당하는 경우 등 여러 사유로 해제할 수 있습니다."
+            },
+            {
+                question: "압류 후 그 재산에 대한 제3자의 권리가 확인된 경우에도 압류를 해제할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제55조(제3자의 소유권 주장) 및 제53조(압류 해제)에 따라 제3자가 정당한 권리자임이 확인되면 압류를 해제해야 합니다."
+            },
+            {
+                question: "압류한 재산이 부패 또는 파손되기 쉬운 경우에는 즉시 공매할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제61조(공매의 주체) 제2항에 따라 부패 또는 파손의 우려가 있는 재산은 즉시 공매할 수 있습니다."
+            },
+            {
+                question: "압류한 재산이 국유재산인 경우에는 압류를 즉시 해제하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국유재산은 원칙적으로 압류 대상이 아니므로, 압류된 경우 즉시 해제해야 합니다."
+            },
+            {
+                question: "공매재산에 대한 압류등기 또는 압류등록은 공매계약 체결 시 말소된 것으로 본다. (O/X)",
+                answer: "X",
+                explanation: "공매대금 완납 시 압류등기 등을 말소하는 절차를 거치며, 자동으로 말소되는 것으로 보지는 않습니다. 등기는 공시 효과를 가집니다."
+            },
+            {
+                question: "국세징수법상 질문·검사권은 세무공무원에게만 부여된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제90조(질문·검사)에 따라 체납액 징수에 필요한 범위에서 세무공무원에게 부여된 권한입니다."
+            },
+            {
+                question: "세무공무원이 체납자의 재산을 수색하는 경우 체납자 또는 그 가족에게 미리 통지하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제30조(압류조서의 작성) 등 압류 및 수색 관련 규정에서는 미리 통지해야 한다는 명시적 의무는 없습니다. 오히려 압류의 목적 달성을 위해 통지하지 않는 경우가 많습니다."
+            },
+            {
+                question: "세무공무원은 수색을 하는 경우 수색증을 휴대하고 관계인에게 제시하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제90조(질문·검사) 제3항에 따라 신분증과 수색 권한을 나타내는 증표를 제시해야 합니다."
+            },
+            {
+                question: "야간에는 압류를 위한 수색을 할 수 없다. 다만, 체납자의 동의가 있는 경우에는 그러하지 아니하다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제35조(야간 압류 등)에 따라 일몰 후 일출 전에는 압류를 위한 수색을 할 수 없으나, 체납자 또는 그 가족의 동의가 있거나 급박한 경우에는 가능합니다."
+            },
+            {
+                question: "압류물을 보관하는 장소에는 체납자의 동의 없이 출입할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "세무공무원은 압류물을 관리하기 위해 필요한 경우 압류물을 보관하는 장소에 출입할 수 있으며, 이 경우 체납자의 동의가 반드시 필요한 것은 아닙니다."
+            },
+            {
+                question: "압류한 재산 중 금전은 즉시 체납액에 충당하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제44조(압류 금전의 충당)에 따라 압류한 금전은 즉시 체납액에 충당합니다."
+            },
+            {
+                question: "유가증권의 압류는 증권 자체를 압류하거나 채무자에게 압류통지를 하는 방법으로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제40조(유가증권의 압류)에 따라 유가증권의 종류에 따라 증권 자체를 압류하거나 통지하는 방법으로 압류합니다."
+            },
+            {
+                question: "압류한 유가증권은 유가증권의 종류에 따라 처리한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제40조(유가증권의 압류) 및 제75조(유가증권의 처리) 등에 따라 유가증권의 특성을 고려하여 처리합니다."
+            },
+            {
+                question: "부동산을 압류한 경우 부동산 등기부에 압류등기를 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제45조(부동산 등의 압류) 제2항에 따라 압류의 효력을 대외적으로 공시하기 위해 등기해야 합니다."
+            },
+            {
+                question: "압류된 부동산은 체납자가 계속 점유·사용할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "압류는 소유권 자체를 박탈하는 것이 아니라 처분권만 제한하는 것이므로, 체납자는 압류된 부동산을 계속 점유·사용할 수 있습니다. 다만, 공매 등으로 소유권이 이전되면 그러하지 않습니다."
+            },
+            {
+                question: "부동산의 공매는 감정평가액을 기준으로 최저입찰가격을 정한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제65조(공매가격의 결정)에 따라 부동산의 공매가격은 감정평가액을 기준으로 결정됩니다."
+            },
+            {
+                question: "부동산의 공매는 2회 이상 유찰된 경우 최저입찰가격을 직전 최저입찰가격의 100분의 10씩 낮추어 다시 공매할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제70조(재공매) 제2항에 따라 재공매 시 최저입찰가격의 100분의 10 범위에서 그 금액을 낮출 수 있습니다."
+            },
+            {
+                question: "공매재산의 인도명령은 매수인이 매각대금을 완납한 날부터 6개월 이내에 신청할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제78조(매수인의 인도명령 신청)에 명시된 신청 기간입니다."
+            },
+            {
+                question: "공매의 매수인은 공매대금을 납부한 날부터 그 공매재산에 대한 소유권을 주장할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "부동산의 경우 매수인이 공매대금을 완납하면 소유권을 취득하지만, 소유권을 주장하기 위해서는 등기가 필요합니다."
+            },
+            {
+                question: "공매에 의하여 재산을 취득한 자는 해당 재산에 설정된 담보권 및 압류에 우선하는 채권에 대하여는 그 부담을 인수한다. (O/X)",
+                answer: "O",
+                explanation: "공매는 원칙적으로 압류 이후의 권리를 소멸시키지만, 압류에 우선하는 법정기일이 빠른 채권(예: 전세권, 저당권 중 일부)이나 공익적 부담(예: 임금채권, 소액임차보증금) 등은 예외적으로 매수인이 인수할 수 있습니다."
+            },
+            {
+                question: "체납처분 비용은 체납된 국세보다 우선하여 징수한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제80조(공매대금의 배분)에 따라 체납처분 비용(공매비용)은 공매대금에서 최우선적으로 징수됩니다."
+            },
+            {
+                question: "체납처분 비용에는 압류, 보관, 운반 등에 소요되는 비용이 포함된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제79조(체납처분비)에 따라 체납처분에 필요한 모든 비용이 포함됩니다."
+            },
+            {
+                question: "압류된 재산이 매각된 경우 매각대금은 체납처분 비용, 국세, 가산금 순으로 배분한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제80조(공매대금의 배분)에 명시된 배분 순서입니다. (체납처분비 -> 국세 -> 가산금)"
+            },
+            {
+                question: "체납처분의 중지는 체납액 징수가 불가능하다고 인정되는 경우에 한하여 할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제51조(체납처분의 중지) 제1항에 명시된 체납처분 중지 사유 중 하나입니다."
+            },
+            {
+                question: "체납처분의 중지 기간은 1년을 초과할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제51조(체납처분의 중지) 제3항에 따라 중지 기간은 1년의 범위에서 정합니다."
+            },
+            {
+                question: "체납처분 중지 기간 중에는 새로운 체납처분을 할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제51조(체납처분의 중지) 제2항에 따라 체납처분 중지 기간 중에는 새로운 체납처분을 할 수 없습니다."
+            },
+            {
+                question: "체납처분 중지를 받은 납세자가 재산을 은닉한 사실이 발견되면 중지를 취소하고 체납처분을 재개할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제52조(체납처분 중지의 취소)에 따라 은닉 등 사유 발생 시 중지를 취소하고 재개할 수 있습니다."
+            },
+            {
+                question: "국세징수법상 고액·상습 체납자 명단 공개는 국세정보공개심의위원회의 심의를 거쳐야 한다. (O/X)",
+                answer: "X",
+                explanation: "명단 공개는 국세청의 국세정보공개심의위원회가 아니라 국세징수위원회 또는 국세정보위원회 등 관련 위원회의 심의를 거쳐야 합니다. 국세징수법 제111조의2(고액·상습체납자 명단 공개)에서 명단 공개 대상을 심의하는 위원회를 규정하고 있습니다."
+            },
+            {
+                question: "고액·상습 체납자의 요건은 체납 발생일로부터 1년이 경과한 국세로서 체납액이 2억원 이상인 자이다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제111조의2(고액·상습체납자 명단 공개) 제1항에 명시된 요건입니다."
+            },
+            {
+                question: "고액·상습 체납자 명단 공개 대상자에게는 공개 예정임을 미리 통지하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제111조의2(고액·상습체납자 명단 공개) 제3항에 따라 미리 통지하여 소명 기회를 줍니다."
+            },
+            {
+                question: "고액·상습 체납자 명단 공개 대상자는 공개 전 소명 기회를 부여받는다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제111조의2(고액·상습체납자 명단 공개) 제3항에 따라 공개 예정 통지 후 소명할 기회를 줍니다."
+            },
+            {
+                question: "고액·상습 체납자 명단은 관보 또는 일간신문에 게재하는 방법으로 공개한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제111조의2(고액·상습체납자 명단 공개) 제4항에 명시된 공개 방법입니다."
+            },
+            {
+                question: "고액·상습 체납자 명단 공개 대상자의 성명, 상호, 주소, 체납액 등이 공개된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제111조의2(고액·상습체납자 명단 공개) 제2항에 명시된 공개 대상 정보입니다."
+            },
+            {
+                question: "납세자가 국세를 납부기한까지 납부하지 아니한 경우 납부고지서 발부 없이 즉시 압류할 수 있는 경우는 없다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제24조(압류의 요건) 제2항에 따르면 납세자가 도피할 우려가 있거나 재산을 은닉할 우려가 있는 등 일정한 경우에는 납부기한 전이라도 즉시 압류할 수 있습니다."
+            },
+            {
+                question: "납세자가 도피할 우려가 있는 경우 납부기한 전에도 재산을 압류할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제24조(압류의 요건) 제2항에 명시된 즉시 압류 사유 중 하나입니다."
+            },
+            {
+                question: "압류된 재산의 관리는 세무서장이 직접 하거나 관리인에게 위임할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제48조(압류재산의 관리)에 따라 세무서장은 압류재산을 직접 관리하거나 적당한 자에게 위임하여 관리하게 할 수 있습니다."
+            },
+            {
+                question: "압류한 유체동산은 체납자의 보관을 위탁할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제32조(압류한 유체동산의 보관)에 따라 압류한 유체동산은 원칙적으로 세무서장이 보관하지만, 체납자나 그 밖에 적당하다고 인정하는 자에게 보관을 위탁할 수 있습니다."
+            },
+            {
+                question: "압류한 재산이 멸실될 우려가 있는 경우 세무서장은 즉시 매각할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제61조(공매의 주체) 제2항에 따라 부패 또는 파손의 우려가 있는 재산은 즉시 공매할 수 있습니다."
+            },
+            {
+                question: "공매의 입찰보증금은 현금 또는 유가증권으로만 납부할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "입찰보증금은 현금, 국채, 지방채 또는 세무서장이 지정하는 유가증권 등으로 납부할 수 있습니다."
+            },
+            {
+                question: "공매에 참가할 수 있는 자는 성년으로서 법률상 행위능력이 있는 자에 한한다. (O/X)",
+                answer: "O",
+                explanation: "공매는 법률행위에 해당하므로, 법률상 행위능력이 있는 자가 참가할 수 있습니다."
+            },
+            {
+                question: "공매에 있어 최고가 입찰자가 2명 이상인 경우에는 추첨으로 매수인을 결정한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 시행령 제76조(최고가 입찰자가 2인 이상인 경우의 결정)에 명시된 방법입니다."
+            },
+            {
+                question: "공매에 의하여 재산을 취득한 자는 해당 재산에 대한 취득세 등을 감면받을 수 있다. (O/X)",
+                answer: "X",
+                explanation: "공매는 취득세 등의 감면 사유가 되지 않습니다. 취득세 등은 일반적인 취득 절차와 동일하게 부과됩니다."
+            },
+            {
+                question: "압류해제는 체납액의 전부 또는 일부를 납부한 경우에만 가능하다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제53조(압류 해제)에 따르면 체납액 납부 외에도 압류에 필요한 재산이 부족하게 된 경우, 압류 금지 재산에 해당하는 경우 등 여러 사유로 해제할 수 있습니다."
+            },
+            {
+                question: "세무서장은 납세자가 체납처분 집행을 방해할 우려가 있는 경우 즉시 체납처분을 할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제24조(압류의 요건) 제2항 제2호에 따라 재산을 은닉하거나 이장할 우려가 있는 경우 납부기한 전이라도 압류할 수 있습니다."
+            },
+            {
+                question: "국세징수법상 질문·검사 시 세무공무원은 그 권한을 남용해서는 아니 된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제90조(질문·검사) 제4항에 따라 질문·검사권을 남용해서는 안 됩니다."
+            },
+            {
+                question: "국세체납액에 대한 강제징수는 압류 후 6개월 이내에 완료하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법상 강제징수 완료 기한에 대한 명시적인 6개월 규정은 없습니다. 체납액 징수는 상황에 따라 장기간 소요될 수 있습니다."
+            },
+            {
+                question: "세무서장은 압류할 재산이 현저히 부족하여 체납액을 징수할 가망이 없는 경우 해당 재산에 대한 압류를 취소할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제53조(압류 해제) 제1항 제3호에 따라 체납처분을 계속해도 징수할 가망이 없는 경우 압류를 해제할 수 있습니다."
+            },
+            {
+                question: "체납자가 압류된 재산에 대하여 담보를 제공하고 압류 해제를 요청하는 경우 세무서장은 이를 거부할 수 있다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법 제53조(압류 해제) 제1항 제1호에 따라 납세담보를 제공하고 압류 해제를 요청하는 경우 세무서장은 압류를 해제해야 합니다."
+            },
+            {
+                question: "공매의 공고에는 재산의 표시, 공매의 일시 및 장소, 최저입찰가격 등이 포함되어야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제63조(공매의 공고) 제2항에 명시된 공고 내용입니다."
+            },
+            {
+                question: "공매를 위한 감정평가는 2개 이상의 감정평가법인등에 의뢰하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "원칙적으로 1개의 감정평가법인에 의뢰하며, 필요한 경우 2개 이상에 의뢰할 수 있습니다. 2개 이상이 필수적인 것은 아닙니다."
+            },
+            {
+                question: "공매에 있어서 재매각은 매수인이 매수대금을 납부하지 아니한 경우 다시 공매하는 것을 말한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제70조(재공매)에 명시된 재매각의 정의입니다."
+            },
+            {
+                question: "국세징수법상 교부청구는 다른 법률에 따른 강제집행 또는 경매절차에서 국세를 교부받기 위하여 하는 청구를 말한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제85조(교부청구)에 명시된 교부청구의 정의입니다."
+            },
+            {
+                question: "교부청구는 체납처분 절차와는 별개의 독립적인 절차이다. (O/X)",
+                answer: "O",
+                explanation: "교부청구는 체납처분 절차가 아니라 다른 강제집행 절차에 국세의 징수를 요청하는 절차입니다."
+            },
+            {
+                question: "교부청구는 강제집행 절차의 배당요구 종기까지 하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제85조(교부청구) 제2항에 따라 배당요구의 종기까지 청구해야 합니다."
+            },
+            {
+                question: "교부청구를 받은 법원은 배당 시 국세에 대하여 우선적으로 배당하여야 한다. (O/X)",
+                answer: "X",
+                explanation: "국세가 항상 우선하는 것은 아니며, 국세의 법정기일과 다른 채권의 법정기일을 비교하여 우선순위를 정합니다."
+            },
+            {
+                question: "교부청구된 국세에는 가산금이 포함되지 아니한다. (O/X)",
+                answer: "X",
+                explanation: "교부청구의 대상이 되는 국세에는 본세와 함께 가산금 및 체납처분비가 포함됩니다."
+            },
+            {
+                question: "국세의 징수를 위한 보충적 징수권은 제2차 납세의무자에게만 인정된다. (O/X)",
+                answer: "X",
+                explanation: "보충적 징수권은 제2차 납세의무 외에도 양도담보권자, 사업양수인 등에게도 인정될 수 있습니다."
+            },
+            {
+                question: "국세징수법상 체납정리위원회는 체납액의 징수에 관한 주요 사항을 심의한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제109조(국세징수위원회의 설치)에 따라 국세징수위원회는 체납액 징수에 관한 중요 사항을 심의합니다."
+            },
+            {
+                question: "체납정리위원회는 세무서에 설치된다. (O/X)",
+                answer: "X",
+                explanation: "국세징수위원회는 국세청 및 지방국세청에 설치됩니다. 세무서에는 소액체납정리위원회가 설치될 수 있습니다."
+            },
+            {
+                question: "체납정리위원회의 위원장은 세무서장이 된다. (O/X)",
+                answer: "X",
+                explanation: "국세징수위원회는 국세청장 또는 지방국세청장이 위원장이 됩니다. 세무서장은 소액체납정리위원회의 위원장이 될 수 있습니다."
+            },
+            {
+                question: "국세체납액이 1억원 이상인 경우에 한하여 체납정리위원회의 심의를 거쳐야 한다. (O/X)",
+                answer: "X",
+                explanation: "명단 공개 기준과 혼동될 수 있으나, 위원회 심의 대상은 체납액 규모 외에도 결손처분, 체납처분 유예 등 다양한 사항이 있습니다."
+            },
+            {
+                question: "국세징수법상 전자납부는 현금 납부와 동일한 효력을 가진다. (O/X)",
+                answer: "O",
+                explanation: "전자납부는 국세 납부의 한 방법이며, 현금 납부와 동일한 법적 효력을 가집니다."
+            },
+            {
+                question: "전자납부는 납부기한 경과 후에도 가능하다. (O/X)",
+                answer: "O",
+                explanation: "납부기한 경과 후에도 가산금을 포함하여 전자납부가 가능합니다."
+            },
+            {
+                question: "세무서장은 국세징수법의 집행을 위하여 필요한 경우 관계 기관에 자료 제출을 요청할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제90조의2(자료제출의 요구)에 따라 필요한 자료를 관계 기관에 요청할 수 있습니다."
+            },
+            {
+                question: "국세징수법상 벌칙은 국세징수법에 규정된 의무를 위반한 자에게 부과된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제112조(벌칙)에 따라 이 법의 규정을 위반한 자에게 벌칙이 적용됩니다."
+            },
+            {
+                question: "공매를 방해한 자는 벌칙의 대상이 된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제112조(벌칙) 제1항 제3호에 따라 공매를 방해한 자는 처벌 대상입니다."
+            },
+            {
+                question: "세무공무원의 체납처분 집행을 방해한 자는 형사처벌을 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제112조(벌칙) 제1항 제1호에 따라 세무공무원의 체납처분 집행을 방해한 자는 형사처벌 대상입니다."
+            },
+            {
+                question: "국세징수법에 따른 체납처분은 민사집행법에 따른 강제집행과 경합할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법상 체납처분과 민사집행법상 강제집행은 별개의 절차이지만, 동일한 재산에 대해 동시에 진행될 수 있으며 이 경우 서로 경합합니다."
+            },
+            {
+                question: "국세징수법은 국세징수권을 보호하고 세입 확보에 기여함을 목적으로 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제1조(목적)에 명시된 법의 목적입니다."
+            },
+            {
+                question: "국세징수법은 지방세의 징수에도 준용된다. (O/X)",
+                answer: "X",
+                explanation: "국세징수법은 국세에 적용되는 법률이며, 지방세 징수는 지방세기본법 및 지방세징수법에 따릅니다. 다만, 지방세징수법에서 국세징수법의 일부 규정을 준용하는 경우는 있습니다."
+            },
+            {
+                question: "압류한 재산을 현금으로 전환하여 체납액에 충당하는 절차를 청산이라고 한다. (O/X)",
+                answer: "O",
+                explanation: "체납처분은 압류, 공매, 청산의 단계를 거치며, 청산은 압류재산을 현금화하여 체납액에 충당하는 절차를 의미합니다."
+            },
+            {
+                question: "체납자가 국외로 출국할 우려가 있는 경우 납부기한 전에도 출국금지를 요청할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제7조의2(출국금지 요청)에 따라 국외로 도피할 우려가 있는 경우 출국금지를 요청할 수 있습니다."
+            },
+            {
+                question: "체납액 징수를 위한 재산조사는 체납자의 협력이 없어도 가능하다. (O/X)",
+                answer: "O",
+                explanation: "세무공무원은 체납자의 협력이 없더라도 필요한 경우 질문·검사권 등을 통해 재산조사를 할 수 있습니다."
+            },
+            {
+                question: "압류한 재산을 매각하는 방법에는 공매 외에 수의계약도 포함된다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제76조(수의계약에 의한 매각)에 따라 일정한 경우 수의계약으로도 매각할 수 있습니다."
+            },
+            {
+                question: "압류한 재산에 대한 제3자의 정당한 권리가 인정되는 경우 압류를 해제하여야 한다. (O/X)",
+                answer: "O",
+                explanation: "국세징수법 제53조(압류 해제) 및 제55조(제3자의 소유권 주장)에 따라 제3자의 정당한 권리가 인정되면 압류를 해제합니다."
+            }
+        ];
+
+        /**
+         * Loads embedded quiz data synchronously.
+         * @returns {Promise<Array>} Quiz data array
+         */
+        async function loadQuizData() {
+            return nationalTaxCollectionQuizData; // Changed to new quiz data
+        }
+
+        // ============================ Quiz start and initialization ============================
+        /**
+         * Initializes and starts the quiz.
+         * @param {number} numQuestions - Number of questions to play
+         */
+        async function startQuiz(numQuestions) {
+            allQuizData = await loadQuizData(); // Load embedded quiz data
+            if (allQuizData.length === 0) {
+                showMessage("앗! 퀴즈 문제를 찾을 수 없어... 😥");
+                showScreen('start');
+                return;
+            }
+
+            // If requested number of questions is more than total questions, use all questions
+            if (numQuestions > allQuizData.length) {
+                quizTotalQuestions = allQuizData.length;
+                showMessage(`요청한 문제 수(${numQuestions}개)가 전체 문제 수(${allQuizData.length}개)보다 많습니다. 전체 ${quizTotalQuestions}문제를 사용해요!`);
+            } else {
+                quizTotalQuestions = numQuestions;
+            }
+
+            // Shuffle all questions and slice by requested number
+            const shuffledAllQuestions = [...allQuizData];
+            shuffleArray(shuffledAllQuestions);
+            currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false;
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz start
+        }
+
+        /**
+         * Restarts the quiz (full or incorrect questions).
+         * @param {number|'incorrect'} mode - Number of questions to restart with, or 'incorrect' for incorrect questions
+         */
+        function restartQuiz(mode) {
+            if (mode === 'incorrect') {
+                currentQuizData = [...incorrectQuestions]; // Set quiz data to incorrect questions
+                if (currentQuizData.length === 0) {
+                    showMessage('와! 틀린 문제가 하나도 없어! 대단해! 👍');
+                    showScreen('end'); // Stay on end screen if no incorrect questions
+                    return;
+                }
+                shuffleArray(currentQuizData); // Shuffle incorrect questions too
+                quizTotalQuestions = currentQuizData.length;
+            } else {
+                const shuffledAllQuestions = [...allQuizData];
+                shuffleArray(shuffledAllQuestions);
+                currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+            }
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false;
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz restart
+        }
+
+        /**
+         * Starts the review mode for incorrect questions.
+         */
+        function startReviewMode() {
+            restartQuiz('incorrect'); // Call restart quiz with 'incorrect' mode
+        }
+
+        // ============================ Timer functions ============================
+        /**
+         * Starts the quiz timer.
+         */
+        function startTimer() {
+            if (timerIntervalId) {
+                clearInterval(timerIntervalId);
+            }
+            timerIntervalId = setInterval(() => {
+                timer++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        /**
+         * Stops the quiz timer.
+         */
+        function stopTimer() {
+            clearInterval(timerIntervalId);
+            timerIntervalId = null;
+        }
+
+        /**
+         * Updates the timer display in MM:SS format.
+         */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // ============================ Display functions ============================
+        /**
+         * Displays the current question and its choices.
+         */
+        function displayQuestion() {
+            // Update question count display
+            questionCount.textContent = `문제 ${currentQuestionIndex + 1} / ${quizTotalQuestions}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Displays raw score during quiz
+
+            const question = currentQuizData[currentQuestionIndex];
+            questionText.textContent = question.question;
+            
+            // Clear previous choices and reset styles
+            questionChoicesArea.innerHTML = `
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            `;
+
+            // Attach event listeners to the new O/X choice elements
+            Array.from(questionChoicesArea.children).forEach(choiceDiv => {
+                choiceDiv.addEventListener('click', () => {
+                    if (!isAnswerChecked) { // Ensure only one selection/check per question
+                        playButtonClickSound(); // Play sound immediately on selection
+                        selectChoice(choiceDiv.dataset.choice); // Visually select
+                        checkAnswer(); // Call checkAnswer logic
+                        // Disable choices after an answer is submitted
+                        Array.from(questionChoicesArea.children).forEach(c => {
+                            c.style.pointerEvents = 'none';
+                            c.classList.add('cursor-not-allowed'); // Add a visual cue for disabled
+                        });
+                    }
+                });
+            });
+
+            // Reset feedback and button text
+            feedbackExplanationArea.classList.add('hidden');
+            feedbackText.textContent = '';
+            explanationText.textContent = '';
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Button text is always "다음 문제" after a choice is made
+            selectedChoice = null; // Clear selected choice
+            isAnswerChecked = false; // Reset answer checked flag for the *new* question
+            resetChoiceStyles(); // Reset choice styles and re-enable pointer events for new question
+        }
+
+        /**
+         * Handles choice selection.
+         * @param {string} choice - The selected choice ('O' or 'X')
+         */
+        function selectChoice(choice) {
+            resetChoiceStyles(); // Clear previous selection styles
+            selectedChoice = choice;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${choice}"]`);
+            selectedChoiceElement.classList.add(
+                'bg-blue-200', 'border-blue-500' // Light mode selection styles
+            );
+            // Apply dark mode specific selection styles
+            if (document.documentElement.classList.contains('dark')) {
+                selectedChoiceElement.classList.add('dark:selected-choice-style'); // Apply custom class for dark mode
+            }
+        }
+
+        /**
+         * Resets the styles of all choices.
+         */
+        function resetChoiceStyles() {
+            Array.from(questionChoicesArea.children).forEach(child => {
+                child.classList.remove(
+                    'bg-blue-200', 'border-blue-500', // selected (light mode)
+                    'bg-green-100', 'border-green-400', // correct (light mode)
+                    'bg-red-200', 'border-red-500',     // incorrect (light mode)
+                    'dark:selected-choice-style', // Remove custom dark mode selected class
+                    'dark:bg-green-700', 'dark:border-green-400', // correct (dark mode)
+                    'dark:bg-red-600', 'dark:border-red-300' // incorrect (dark mode)
+                );
+                child.style.pointerEvents = 'auto'; // Re-enable pointer events for choices
+                child.classList.remove('cursor-not-allowed'); // Remove disabled cursor
+            });
+        }
+
+        /**
+         * Checks the selected answer (called immediately when a choice is made).
+         */
+        function checkAnswer() {
+            isAnswerChecked = true; // Set flag to indicate answer has been checked
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Change button text to "다음 문제"
+            feedbackExplanationArea.classList.remove('hidden'); // Show feedback area
+
+            const currentQuestion = currentQuizData[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${selectedChoice}"]`);
+            const correctChoiceElement = questionChoicesArea.querySelector(`[data-choice="${correctAnswer}"]`);
+
+            // Highlight correct answer
+            correctChoiceElement.classList.add('bg-green-100', 'border-green-400', 'dark:bg-green-700', 'dark:border-green-400');
+
+            if (selectedChoice === correctAnswer) {
+                score++; // Increment raw score
+                feedbackText.textContent = '딩동댕! 잘했어! 🎉';
+                // Remove previous error state colors and add success state colors including dark mode variants
+                feedbackText.classList.remove('text-red-600', 'dark:text-red-400');
+                feedbackText.classList.add('text-green-600', 'dark:text-green-400');
+                playCorrectSound(); // Play correct sound
+            } else {
+                feedbackText.textContent = '아쉬워! ㅠㅠ 다시 생각해볼까? 🧐';
+                // Remove previous success state colors and add error state colors including dark mode variants
+                feedbackText.classList.remove('text-green-600', 'dark:text-green-400');
+                feedbackText.classList.add('text-red-600', 'dark:text-red-400');
+                // Ensure selected incorrect answer removes selection highlight properly and applies incorrect style
+                selectedChoiceElement.classList.remove('bg-blue-200', 'border-blue-500', 'dark:selected-choice-style'); // Remove selected style
+                selectedChoiceElement.classList.add('bg-red-200', 'border-red-500', 'dark:bg-red-600', 'dark:border-red-300'); // Add incorrect style
+                incorrectQuestions.push(currentQuestion); // Add to incorrect questions
+                playIncorrectSound(); // Play incorrect sound
+            }
+            explanationText.textContent = `꼼꼼 해설: ${currentQuestion.explanation}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Update score immediately (raw score)
+        }
+
+        /**
+         * Moves to the next question or ends the quiz (now always called by checkNextButton).
+         */
+        function checkOrNextQuestion() {
+            moveToNextQuestion();
+            playButtonClickSound(); // Play sound on button click
+        }
+
+        /**
+         * Moves to the next question or ends the quiz.
+         */
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizTotalQuestions) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        /**
+         * Ends the quiz and displays the final score.
+         */
+        function endQuiz() {
+            stopTimer(); // Stop the timer
+            showScreen('end');
+
+            // Calculate final score based on 100-point scale
+            const finalCalculatedScore = (score / quizTotalQuestions) * 100;
+            const correctCount = score;
+            const incorrectCount = incorrectQuestions.length;
+
+            // Display all information in the finalScoreDisplay element
+            finalScoreDisplay.textContent = `(총 ${quizTotalQuestions}문제, ${correctCount}개 정답, ${incorrectCount}개 오답! 대단해! 🎉 점수: ${finalCalculatedScore.toFixed(0)}점)`;
+            
+            playEndSound(); // Play end sound
+            updateQuizHeaderVisibility(false); // Hide quiz header
+            endQuizButtonsArea.classList.remove('hidden'); // Ensure buttons are visible on end screen
+        }
+
+        /**
+         * Controls which screen is visible.
+         * @param {'start'|'quiz'|'end'} screenName - The name of the screen to show
+         */
+        function showScreen(screenName) {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endQuizScreen.classList.add('hidden');
+
+            // Always hide settings initially, then show only if it's the start screen
+            settingsControls.classList.add('hidden'); // Hide settings for all screens by default
+
+            if (screenName === 'start') {
+                startScreen.classList.remove('hidden');
+                settingsControls.classList.remove('hidden'); // Show settings only on start screen
+            } else if (screenName === 'quiz') {
+                quizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            } else if (screenName === 'end') {
+                endQuizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            }
+        }
+
+        /**
+         * Toggles the visibility of the quiz header elements.
+         * @param {boolean} show - True to show, false to hide
+         */
+        function updateQuizHeaderVisibility(show) {
+            if (show) {
+                quizHeader.classList.remove('hidden');
+            } else {
+                quizHeader.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Shuffles an array randomly (Fisher-Yates shuffle algorithm).
+         * @param {Array} array - The array to shuffle
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // ============================ Event Listeners ============================
+
+        // Start screen button event listeners
+        start10Button.addEventListener('click', () => startQuiz(10));
+        start20Button.addEventListener('click', () => startQuiz(20));
+        start40Button.addEventListener('click', () => startQuiz(40));
+
+        // This button now always moves to the next question or ends the quiz
+        checkNextButton.addEventListener('click', checkOrNextQuestion);
+        endEarlyButton.addEventListener('click', endQuiz);
+        // 'Restart Full Quiz' button restarts with the current quiz session's question count
+        restartFullQuizButton.addEventListener('click', () => restartQuiz(quizTotalQuestions));
+        reviewIncorrectButton.addEventListener('click', startReviewMode);
+        goToHomeButton.addEventListener('click', () => {
+            location.reload(); // Go to home screen = reload page
+        });
+
+        // Dark mode toggle event listener
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Toggle icons based on dark mode status
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // Sound toggle event listener
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled; // Toggle sound status
+            // Update Tone.Destination.mute immediately
+            Tone.Destination.mute = !isSoundEnabled;
+            // Toggle icons based on sound status
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+
+
+        // ============================ Quiz initialization and start on DOMContentLoaded ============================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initially show only the start screen, hide all quiz related elements
+            startScreen.classList.remove('hidden');
+            quizScreen.classList.add('hidden'); // Explicitly hide quizScreen
+            endQuizScreen.classList.add('hidden'); // Explicitly hide endQuizScreen
+
+            quizHeader.classList.add('hidden');
+            questionChoicesArea.classList.add('hidden');
+            feedbackExplanationArea.classList.add('hidden');
+            quizControls.classList.add('hidden');
+            endQuizButtonsArea.classList.add('hidden'); // This line was important!
+            scoreDisplay.classList.add('hidden');
+
+            // Settings control should only be visible on the start screen when the page loads
+            showScreen('start'); // This handles visibility of settingsControls correctly
+
+            // Set initial dark mode icon based on system preference or saved state
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+
+            // Set initial sound icon (default: on)
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
